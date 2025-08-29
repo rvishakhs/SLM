@@ -13,7 +13,7 @@ enc = tiktoken.get_encoding("gpt2")
 Sample process function
 """
 
-def main():
+def data_cleaning():
     def process(example): 
         ids = enc.encode_ordinary(example['text']) # encode_ordinary ignores any special tokens 
         out = { 'ids' : ids, 'len' : len(ids)}
@@ -47,6 +47,5 @@ def main():
                 idx += len(arr_batch)
             arr.flush()
 
-
 if __name__ == "__main__":
-    main()
+    data_cleaning()
