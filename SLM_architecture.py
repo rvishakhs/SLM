@@ -8,6 +8,8 @@ from tqdm.auto import tqdm
 from contextlib import nullcontext
 import os
 
+from batch_creation import get_batch
+
 
 # Layer normalisation class
 class LayerNorm(nn.Module):
@@ -156,3 +158,36 @@ class GPT(nn.Module):
             idx_next = torch.multinomial(probs, num_samples=1)
             idx = torch.cat(idx, idx_next, dim=1)
         return idx
+    
+
+
+
+
+config = GPTConfig(
+    block_size=128,
+    vocab_size=50257,
+    n_layer=6,
+    n_head=6,
+    n_embd=384,
+    dropout=0.1,
+    bias=True
+)
+
+model = GPT(config)
+
+
+# defining the loss function 
+def estimate_loss(model):
+    out = {}
+    model.eval()
+    with torch.inference_mode():
+        for split in ['train', 'val']:
+            losses = torch.zeros(eval_iters)
+            for k in range(eval_iters):
+                X, Y = get_batch(split)
+                with ctx:
+                    logits, loss = model(X, Y)
+                losses[k] = loss.item()
+            out[split] = losses.mean()
+    model.train()
+    return out
